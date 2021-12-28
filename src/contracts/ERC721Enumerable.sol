@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import "./ERC721.sol";
+import "./interfaces/IERC721Enumerable.sol";
 
-contract ERC721Enumerable is ERC721 {
+contract ERC721Enumerable is ERC721, IERC721Enumerable {
     uint256[] private _allTokens;
     // maping from tokenId to position in _allTokens array
     mapping(uint256 => uint256) private _allTokenIndex;
@@ -12,21 +13,32 @@ contract ERC721Enumerable is ERC721 {
     // mapping from token ID to index of the owner tokens list
     mapping(uint256 => uint256) private _ownedTokensIndex;
 
-    /// @notice Count NFTs tracked by this contract
-    /// @return A count of valid NFTs tracked by this contract, where each one of
-    ///  them has an assigned and queryable owner not equal to the zero address
+    constructor() {
+        _registerInterfaces(
+            bytes4(
+                keccak256("totalSupply(bytes4)") ^
+                    keccak256("tokenByIndex(bytes4)") ^
+                    keccak256("tokenOfOwnerByIndex(bytes4)")
+            )
+        );
+    }
+
     function totalSupply() external view returns (uint256) {
         return _allTokens.length;
     }
 
     // helper function to keep track of tokenIndex
-    function tokenIndex(uint256 index) public view returns (uint256) {
+    function tokenByIndex(uint256 index) public view returns (uint256) {
         require(index < this.totalSupply(), "global index is out of bound");
         return _allTokens[index];
     }
 
     // helper function to keep track of owner by token index
-    function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256) {
+    function tokenOfOwnerByIndex(address owner, uint256 index)
+        public
+        view
+        returns (uint256)
+    {
         require(index < this.balanceOf(owner), "owner index is out of bound");
         return _ownedTokens[owner][index];
     }
